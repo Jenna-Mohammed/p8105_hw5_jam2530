@@ -8,4 +8,39 @@ output: html_document
 
 ```{r}
 library(tidyverse)
+library(rvest)
+library(purrr)
+library(dplyr)
+library(broom)
 ```
+
+# Problem 2 
+
+Creating a tidy dataframe using list
+
+```{r}
+# listing all files using list.files
+
+file_names <- list.files(path="./hw5_data./data", pattern="\\.csv$", all.files=FALSE, full.names=TRUE)
+
+```
+
+```{r}
+
+# create function to read files
+
+all_data <- map_df(file_names, ~ {read.csv(.x)
+
+})
+
+ #reading_files = function(x) {
+  
+#  files_df = read_csv("./hw5_data/data") |>
+#    mutate( data = file_names, read_csv)
+#}
+
+
+#output = map(file_names, read_csv)
+
+```
+
