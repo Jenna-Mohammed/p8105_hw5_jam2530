@@ -1,0 +1,11 @@
+---
+title: "P8105 HW5 jam2530"
+author: "Jenna Mohammed"
+date: '2023-11-12'
+output: html_document
+---
+
+
+```{r}
+library(tidyverse)
+```
