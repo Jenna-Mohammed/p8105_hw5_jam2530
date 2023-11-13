@@ -51,16 +51,90 @@ cleaned_df <- all_data |>
   janitor::clean_names() |>
   mutate(subject_ID = as.integer(str_extract(file_names, "[0-9][0-9]"))) |>
   mutate(file_names = ifelse(str_detect(file_names, "con") == TRUE, "Control", "Experiment"))
-  
    
 ```
 
 Making a Spaghetti Plot 
 
 ```{r}
-cleaned_df |>
-  gather(week, observations, -subject_ID, -file_names)|>
-  ggplot(aes( x = week, y = observations, color = subject_ID)) + 
-  geom_line()
+cleaned_df_new = 
+ cleaned_df|>
+  pivot_longer(week_1:week_8,
+               names_to = "week",
+               values_to = "outcome",
+               names_prefix = "week_"
+               ) |>
+  mutate(week = as.numeric(week))
+
+cleaned_df_new |>
+  ggplot(aes(x = week, y = outcome,
+             group = subject_ID, color = file_names)) +
+  geom_path() +
+  facet_grid(~file_names)
+  
 ```
 
+# Problem 3 
+
+Setting design elements 
+
+```{r}
+
+set.seed(12345)
+
+n <- 30
+
+sigma <- 5
+
+mu <- 0:6
+
+alpha <- 0.05
+
+dataset_total <- 5000
+
+iteration = 1:5000
+
+```
+
+Creating function for hypothesis testing 
+
+```{r}
+
+sim_function = function(n, mu, sigma) {
+  test = rnorm(n, mean = mu, sd = sigma)
+  test_results = t.test(test)
+  test_results|>
+    broom::tidy()
+  
+}
+
+
+# sim_results = expand.grid(sample_size = n, true_mean = mu, iteration = 1:5000) #|>
+#   mutate(
+#    resulting_df = map2(.x = sample_size, .y = true_mean, ~ sim_t(n = .x, mu = #.y))) |>
+#   reject = case_when(
+#      alpha < 0.05 ~ "reject",
+#      alpha >= 0.05 ~ "fail_to_reject") |>
+#  unnest(resulting_df)
+
+#sim_results_df = 
+#  expand_grid(
+#    sample_size = 30,
+#    true_mean = c(1, 2, 3, 4, 5, 6),
+#    iteration = 1:5000)
+  
+#  sim_results = expand.grid(
+#    simulation = map(mu = 0, iteration = 1:5000, ~ t.test(rnorm(n, mu,    #sigma))),
+ #   reject = case_when(
+#      alpha < 0.05 ~ "reject",
+#      alpha >= 0.05 ~ "fail_to_reject")
+#    )
+  
+  
+```
+
+
+Questions for TA
+
+- For problem 2, my spaghetti plot doesn't look right(i think i messed up a variable)
+- for problem 3, when i try to make the dataframe it doesn't look right
