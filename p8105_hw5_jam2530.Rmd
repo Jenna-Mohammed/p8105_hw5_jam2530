@@ -6,7 +6,7 @@ output: html_document
 ---
 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 library(tidyverse)
 library(rvest)
 library(purrr)
@@ -43,4 +43,16 @@ all_data <- map_df(file_names, ~ {read.csv(.x)
 #output = map(file_names, read_csv)
 
 ```
+ 
+```{r}
+# cleaning and tidying data 
+
+cleaned_df <- all_data |>
+  janitor::clean_names() |>
+  mutate(subject_ID = as.integer(str_extract(file_names, "[0-9][0-9]"))) |>
+  mutate(file_names = ifelse(str_detect(file_names, "con") == TRUE,
+                             "Control", "Experiment"))
+
+```
+
 
