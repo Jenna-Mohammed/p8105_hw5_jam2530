@@ -33,15 +33,6 @@ all_data <- map_df(file_names, ~ {read.csv(.x)
 
 })
 
- #reading_files = function(x) {
-  
-#  files_df = read_csv("./hw5_data/data") |>
-#    mutate( data = file_names, read_csv)
-#}
-
-
-#output = map(file_names, read_csv)
-
 ```
  
 ```{r}
@@ -100,22 +91,23 @@ Creating function for hypothesis testing
 
 ```{r}
 
-sim_function = function(n, mu, sigma) {
-  test = rnorm(n, mean = mu, sd = sigma)
-  test_results = t.test(test)
-  test_results|>
+t_test_sim = function(n, mu, sigma) {
+  test = rnorm(n = n, mean = mu, sd = sigma)
+  t_test_results = t.test(test)
+  t_test_results|>
     broom::tidy()
+  
+  return(t_test_results)
   
 }
 
-
-# sim_results = expand.grid(sample_size = n, true_mean = mu, iteration = 1:5000) #|>
-#   mutate(
-#    resulting_df = map2(.x = sample_size, .y = true_mean, ~ sim_t(n = .x, mu = #.y))) |>
-#   reject = case_when(
-#      alpha < 0.05 ~ "reject",
-#      alpha >= 0.05 ~ "fail_to_reject") |>
-#  unnest(resulting_df)
+ sim_results = expand.grid(sample_size = n, true_mean = mu, iteration = 1:5000) |>
+   mutate(
+    estimate_df = map2(.x = sample_size, .y = true_mean, ~ sim_t(n = .x, mu = .y))) |>
+  unnest(estimate_df)
+ 
+ 
+ 
 
 #sim_results_df = 
 #  expand_grid(
@@ -133,6 +125,16 @@ sim_function = function(n, mu, sigma) {
   
 ```
 
+```{r}
+
+
+power_df <- sim_results |>
+  group_by(true_mean) |>
+  mutate(reject_null = p.value < 0.05) |>
+  summarize(power = mean(reject_null)) |>
+  ggplot(aes( x = true_mean, y = power )) +
+  geom_point()
+```
 
 Questions for TA
 
