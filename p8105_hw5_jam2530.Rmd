@@ -103,7 +103,7 @@ t_test_sim = function(n, mu, sigma) {
 
  sim_results = expand.grid(sample_size = n, true_mean = mu, iteration = 1:5000) |>
    mutate(
-    estimate_df = map2(.x = sample_size, .y = true_mean, ~ sim_t(n = .x, mu = .y))) |>
+    estimate_df = map2(.x = sample_size, .y = true_mean, ~ t_test_sim(n = .x, mu = .y))) |>
   unnest(estimate_df)
  
  
@@ -127,16 +127,20 @@ t_test_sim = function(n, mu, sigma) {
 
 ```{r}
 
-
 power_df <- sim_results |>
   group_by(true_mean) |>
   mutate(reject_null = p.value < 0.05) |>
-  summarize(power = mean(reject_null)) |>
-  ggplot(aes( x = true_mean, y = power )) +
-  geom_point()
+  summarize(power_var = mean(reject_null)) 
+
+power_df |> 
+  ggplot(aes( x = true_mean, y = power_var )) +
+  geom_path() +
+  labs( 
+    x = "Mu (True Mean)",
+    y = "Power",
+    title = "Power of Test versus True Mean Values")
 ```
 
-Questions for TA
 
 - For problem 2, my spaghetti plot doesn't look right(i think i messed up a variable)
 - for problem 3, when i try to make the dataframe it doesn't look right
