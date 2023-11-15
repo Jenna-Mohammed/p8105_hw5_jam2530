@@ -16,10 +16,13 @@ library(ggplot2)
 
 # Problem 2 
 
-Creating a tidy dataframe using list
+
+For this problem, I will examine data from a longtitudal study. I will create and tidy the dataframe, and create a spaghetti plot to display the data
+
+## Data Analysis 
 
 ```{r}
-# listing all files using list.files
+# Creating a tidy dataframe listing all files using list.files
 
 file_names <- list.files(path="./hw5_data./data", pattern="\\.csv$", all.files=FALSE, full.names=TRUE)
 
@@ -27,7 +30,7 @@ file_names <- list.files(path="./hw5_data./data", pattern="\\.csv$", all.files=F
 
 ```{r}
 
-# create function to read files
+# creating a function to read files
 
 all_data <- map_df(file_names, ~ {read.csv(.x)
 
@@ -45,7 +48,7 @@ cleaned_df <- all_data |>
    
 ```
 
-Making a Spaghetti Plot 
+### Making a Spaghetti Plot 
 
 ```{r}
 cleaned_df_new = 
@@ -58,20 +61,28 @@ cleaned_df_new =
   mutate(week = as.numeric(week))
 
 spaghetti_plot <- cleaned_df_new |>
-  ggplot(aes(x = week, y = outcome,
+  ggplot(aes(x = week, y = outcome, 
              group = subject_ID, color = arm)) +
   geom_path() +
+  labs( x = "Week", 
+        y = "Observations",
+        title = "Observations vs Time") +
   facet_grid(~arm)
   
+spaghetti_plot
 ```
 
-the `spaghetti_plot` above depicts the observations of each participant in the longtitudal study over the course of 8 weeks
+### Interpertation
+
+The `spaghetti_plot` above depicts the observations of each participant in the longtitudal study over the course of 8 weeks. Both plots have a varying measurements. However, the control graph has observations ranging between -2.5 and 4, while the experiment graph has measurements ranging between -1 and 7.5. Thr experiment graph shows a positive upwards trend.
 
 # Problem 3 
 
-Setting design elements 
+For this problem, I will create a simulation to explore power in a one sample t test. 5000 datasets will be generated  
+ 
 
 ```{r}
+# Setting design elements
 
 set.seed(12345)
 
@@ -90,7 +101,6 @@ iteration = 1:5000
 ```
 
 Creating function for hypothesis testing 
-
 
 ```{r}
 
@@ -163,8 +173,7 @@ sim_results %>%
 ```
 
 
-
-Plot of Test of Power 
+## Plot of Test of Power 
 
 ```{r}
 
@@ -180,9 +189,16 @@ power_plot <- power_df |>
     x = "Mu (True Mean)",
     y = "Power",
     title = "Power of Test versus True Mean Values")
+
+power_plot
 ```
 
-Plot of Average Estimates 
+### Interpertation
+
+A larger power implies a larger effect size. There appears to be a direct positive relationship between the true mean and power, eaning there is a strong probability of correctly rejecting the null
+
+
+## Plot of Average Estimates 
 
 ```{r}
 
@@ -202,5 +218,6 @@ estimate_plot <- estimate_plot_df |>
         y = "Average Estimate of Mu Hat",
         title = "Average Estimate of the True Mean")
 
+estimate_plot
 ```
 
