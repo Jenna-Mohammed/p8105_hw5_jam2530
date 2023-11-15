@@ -41,7 +41,7 @@ all_data <- map_df(file_names, ~ {read.csv(.x)
 cleaned_df <- all_data |>
   janitor::clean_names() |>
   mutate(subject_ID = as.integer(str_extract(file_names, "[0-9][0-9]"))) |>
-  mutate(file_names = ifelse(str_detect(file_names, "con") == TRUE, "Control", "Experiment"))
+  mutate(arm = ifelse(str_detect(file_names, "con") == TRUE, "Control", "Experiment")) 
    
 ```
 
@@ -57,13 +57,15 @@ cleaned_df_new =
                ) |>
   mutate(week = as.numeric(week))
 
-cleaned_df_new |>
+spaghetti_plot <- cleaned_df_new |>
   ggplot(aes(x = week, y = outcome,
-             group = subject_ID, color = file_names)) +
+             group = subject_ID, color = arm)) +
   geom_path() +
-  facet_grid(~file_names)
+  facet_grid(~arm)
   
 ```
+
+the `spaghetti_plot` above depicts the observations of each participant in the longtitudal study over the course of 8 weeks
 
 # Problem 3 
 
@@ -89,51 +91,90 @@ iteration = 1:5000
 
 Creating function for hypothesis testing 
 
+
 ```{r}
 
-t_test_sim = function(n, mu, sigma) {
-  test = rnorm(n = n, mean = mu, sd = sigma)
-  t_test_results = t.test(test)
+set.seed(12345)
+
+sigma <- 5
+
+dataset_total <- 5000
+
+iteration = 1:5000
+
+t_test_sim = function(n=30, mu=2, sigma=5) {
+
+  test = tibble(
+
+    x=rnorm(n = n, mean = mu, sd = sigma))
+
+  t_test_results = t.test(x ~ 1, data =test)
+
   t_test_results|>
+
     broom::tidy()
-  
-  return(t_test_results)
-  
+
 }
 
- sim_results = expand.grid(sample_size = n, true_mean = mu, iteration = 1:5000) |>
+sim_results =
+
+   tibble(mu = 0:6) |>
+
    mutate(
-    estimate_df = map2(.x = sample_size, .y = true_mean, ~ t_test_sim(n = .x, mu = .y))) |>
-  unnest(estimate_df)
- 
- 
+
+    estimate_df = map(.x = mu, ~rerun(dataset_total, t_test_sim(n=30, mu = .x))),
+
+    estimate_dfs = map(estimate_df, bind_rows))|>
+
+    select(-estimate_df)
+
+sim_results
+
+```
+
  
 
-#sim_results_df = 
-#  expand_grid(
-#    sample_size = 30,
-#    true_mean = c(1, 2, 3, 4, 5, 6),
-#    iteration = 1:5000)
-  
-#  sim_results = expand.grid(
-#    simulation = map(mu = 0, iteration = 1:5000, ~ t.test(rnorm(n, mu,    #sigma))),
- #   reject = case_when(
-#      alpha < 0.05 ~ "reject",
-#      alpha >= 0.05 ~ "fail_to_reject")
-#    )
-  
-  
+```{r}
+
+sim_results =
+
+sim_results %>%
+
+unnest(estimate_dfs) %>%
+
+select(mu, estimate, p.value) %>% mutate(significant = as.numeric(p.value < 0.05))
+
 ```
+
+ 
+
+```{r}
+
+sim_results %>%
+
+  group_by(mu) %>%
+
+  summarize(power = mean(significant)) %>%
+
+  ggplot(aes(x = mu, y = power)) +
+
+  geom_path()
+
+```
+
+
+
+Plot of Test of Power 
 
 ```{r}
 
 power_df <- sim_results |>
-  group_by(true_mean) |>
+  group_by(mu) |>
   mutate(reject_null = p.value < 0.05) |>
   summarize(power_var = mean(reject_null)) 
 
-power_df |> 
-  ggplot(aes( x = true_mean, y = power_var )) +
+power_plot <- power_df |> 
+  ggplot(aes( x = mu, y = power_var )) +
   geom_path() +
   labs( 
     x = "Mu (True Mean)",
@@ -141,6 +182,25 @@ power_df |>
     title = "Power of Test versus True Mean Values")
 ```
 
+Plot of Average Estimates 
 
-- For problem 2, my spaghetti plot doesn't look right(i think i messed up a variable)
-- for problem 3, when i try to make the dataframe it doesn't look right
+```{r}
+
+estimate_plot_df <- sim_results |>
+  group_by(mu) |>
+  mutate(reject_null = p.value < 0.05) |>
+  mutate(avg_estimate = mean(estimate)) |>
+  mutate(avg_est_reject = mean(estimate[reject_null]))
+
+estimate_plot <- estimate_plot_df |>
+  ggplot(aes( x = mu)) +
+  geom_line(aes(y = avg_estimate, color = "Average Estimate")) +
+  geom_point(aes(y = avg_estimate, color = "Average Estimate")) +
+  geom_line(aes(y = avg_est_reject, color = "Average Estimate Alpha < 0.05")) +
+  geom_point(aes(y = avg_est_reject, color = "Average Estimate Alpha < 0.05")) +
+  labs( x = "True Mean Values",
+        y = "Average Estimate of Mu Hat",
+        title = "Average Estimate of the True Mean")
+
+```
+
