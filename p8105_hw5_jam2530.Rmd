@@ -100,6 +100,8 @@ iteration = 1:5000
 
 ```
 
+## Data Analysis 
+
 Creating function for hypothesis testing 
 
 ```{r}
@@ -142,7 +144,6 @@ sim_results
 
 ```
 
- 
 
 ```{r}
 
@@ -153,22 +154,6 @@ sim_results %>%
 unnest(estimate_dfs) %>%
 
 select(mu, estimate, p.value) %>% mutate(significant = as.numeric(p.value < 0.05))
-
-```
-
- 
-
-```{r}
-
-sim_results %>%
-
-  group_by(mu) %>%
-
-  summarize(power = mean(significant)) %>%
-
-  ggplot(aes(x = mu, y = power)) +
-
-  geom_path()
 
 ```
 
@@ -221,3 +206,6 @@ estimate_plot <- estimate_plot_df |>
 estimate_plot
 ```
 
+### Interpertation
+
+The sample average of mu hat `reject_null` is relatively similar to the true value of mu. The average where the null is rejected is slightly different from the true mean at the start of the graph but aligns towards the end.
